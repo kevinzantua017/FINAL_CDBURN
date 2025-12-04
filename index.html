@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>LED Board System - Adamson University</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Link the main stylesheet.  This file contains all styles for the auth
+
+       pages, layout, navigation, live view, analytics, scenarios and more. -->
+
+  <!-- Load the main stylesheet from the static folder.  A relative path
+
+       ensures it resolves correctly even when the application is served
+
+       from a sub-path on your domain. -->
+
+  <link rel="stylesheet" href="static/styles.css">
+
+  <!-- Third‑party libraries for charts, Supabase authentication and realtime
+
+       communication.  These are loaded via CDN to simplify deployment. -->
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+  <!-- Our application logic lives in script.js.  Use a relative path so
+
+       the file loads properly when the app is deployed under a sub-path. -->
+
+  <script src="static/script.js?v=3"></script>
+
+</head>
+
+<body>
+
+
+
+<!-- ===== LOGIN PAGE ===== -->
+
+<div id="loginPage" class="auth-page">
+
+  <button class="theme-btn-auth" onclick="toggleTheme()"></button>
+
+  <div class="auth-card">
+
+    <div class="auth-header">
+
+      <h2>🚦 LED Board System</h2>
+
+      <p>Traffic Management &amp; Optimization</p>
+
+    </div>
+
+    <form onsubmit="event.preventDefault(); login();">
+
+      <div class="form-group">
+
+        <label>Email</label>
+
+        <input id="loginUser" type="email" placeholder="Enter email" required>
+
+      </div>
+
+      <button type="submit" class="btn-primary">Login</button>
+
+    </form>
+
+    <div class="auth-link">
+
+      <strong>ADMIN ONLY</strong>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- ===== REGISTRATION PAGE ===== -->
+
+<div id="registerPage" class="auth-page hidden">
+
+  <button class="theme-btn-auth" onclick="toggleTheme()"></button>
+
+  <div class="auth-card">
+
+    <div class="auth-header">
+
+      <h2>Create Admin Account</h2>
+
+      <p>Join the LED Board System</p>
+
+    </div>
+
+    <form onsubmit="event.preventDefault(); register();">
+
+      <div class="form-group">
+
+        <label>Email</label>
+
+        <input id="regUser" type="email" placeholder="Choose email" required>
+
+      </div>
+
+      <button type="submit" class="btn-primary">Register</button>
+
+    </form>
+
+    <div class="auth-link">
+
+      Already have an account? <a onclick="showLogin()">Login here</a>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- ===== 2FA VERIFICATION PAGE ===== -->
+
+<div id="twoFAPage" class="auth-page hidden">
+
+  <button class="theme-btn-auth" onclick="toggleTheme()"></button>
+
+  <div class="auth-card">
+
+    <div class="auth-header">
+
+      <h2>Verify Registration</h2>
+
+      <p>Enter the code to complete setup</p>
+
+    </div>
+
+    <div class="verification-section">
+
+      <p class="verification-label" id="codeDisplay">Check your inbox (and spam). Enter the 6‑digit code below.</p>
+
+    </div>
+
+    <form onsubmit="event.preventDefault(); verify2FA();">
+
+      <div class="form-group">
+
+        <label>Enter Code</label>
+
+        <input id="twoFAInput" type="text" maxlength="6" placeholder="000000" required>
+
+      </div>
+
+      <button type="submit" class="btn-primary">Verify &amp; Complete</button>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+
+<!-- ===== MAIN APPLICATION ===== -->
+
+<div id="appWrapper" class="page-wrapper hidden">
+
+  <!-- ===== VERTICAL SIDEBAR NAVIGATION ===== -->
+
+  <nav class="sidebar-nav">
+
+    <!-- Logo button navigates back to the live view.  Replace the image src
+
+         with the correct path to your institution's logo. -->
+
+    <button class="sidebar-logo" onclick="switchPage('live')">
+
+      <img src="static/Adamson.png" alt="Adamson Logo" class="adamson-logo-img">
+
+    </button>
+
+    <div class="sidebar-menu">
+
+      <a class="sidebar-item active" onclick="switchPage('live')">
+
+        <span class="sidebar-icon">📷</span>
+
+        <span class="sidebar-label">Live</span>
+
+      </a>
+
+      <a class="sidebar-item" onclick="switchPage('analytics')">
+
+        <span class="sidebar-icon">📊</span>
+
+        <span class="sidebar-label">Analytics</span>
+
+      </a>
+
+      <a class="sidebar-item" onclick="switchPage('scenarios')">
+
+        <span class="sidebar-icon">⚙️</span>
+
+        <span class="sidebar-label">Scenarios</span>
+
+      </a>
+
+      <a class="sidebar-item" onclick="switchPage('archive')">
+
+        <span class="sidebar-icon">📁</span>
+
+        <span class="sidebar-label">Archive</span>
+
+      </a>
+
+      <a class="sidebar-item" onclick="switchPage('help')">
+
+        <span class="sidebar-icon">❓</span>
+
+        <span class="sidebar-label">Help</span>
+
+      </a>
+
+      <a class="sidebar-item" onclick="switchPage('about')">
+
+        <span class="sidebar-icon">ℹ️</span>
+
+        <span class="sidebar-label">About</span>
+
+      </a>
+
+    </div>
+
+    <div class="sidebar-bottom">
+
+      <button class="sidebar-item" onclick="toggleTheme()">
+
+        <span class="sidebar-icon theme-btn">🌙</span>
+
+        <span class="sidebar-label">Theme</span>
+
+      </button>
+
+      <a class="sidebar-item logout-sidebar" onclick="logout()">
+
+        <span class="sidebar-icon">🚪</span>
+
+        <span class="sidebar-label">Logout</span>
+
+      </a>
+
+    </div>
+
+  </nav>
+
+  <!-- ===== TOP HEADER ===== -->
+
+  <header class="top-header">
+
+    <h1 class="header-title">🚦 LED Board System - Adamson University</h1>
+
+    <div class="header-user">
+
+      <span id="headerUsername">User</span>
+
+      <button class="logout-btn" onclick="logout()">Logout</button>
+
+    </div>
+
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+
+  <main class="main-content">
+
+    <!-- ===== LIVE MONITORING PAGE ===== -->
+
+    <div id="livePage" class="live active">
+
+      <h2 class="page-title">📷 Live Monitoring</h2>
+
+      <!-- ===== CAMERAS GRID ===== -->
+
+      <div class="cameras-grid">
+
+        <!-- Pedestrian Camera -->
+
+        <div class="camera-card">
+
+          <div class="camera-header">
+
+            <h3>📷 Pedestrian Camera</h3>
+
+          </div>
+
+          <!-- The live image is injected by the script.  The container is kept
+
+               empty so that the feed can fill the available space. -->
+
+          <div class="camera-feed"></div>
+
+          <div class="camera-info">
+
+            <div class="info-row">
+
+              <span class="info-label">Detections:</span>
+
+              <span class="info-value">0</span>
+
+            </div>
+
+            <div class="info-row">
+
+              <span class="info-label">Status:</span>
+
+              <span class="info-value">Active</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Vehicle Camera -->
+
+        <div class="camera-card">
+
+          <div class="camera-header">
+
+            <h3>📷 Vehicle Camera</h3>
+
+          </div>
+
+          <div class="camera-feed"></div>
+
+          <div class="camera-info">
+
+            <div class="info-row">
+
+              <span class="info-label">Detections:</span>
+
+              <span class="info-value">0</span>
+
+            </div>
+
+              <div class="info-row">
+
+              <span class="info-label">Avg Speed:</span>
+
+              <span class="info-value">0 km/h</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Traffic Light Camera -->
+
+        <div class="camera-card">
+
+          <div class="camera-header">
+
+            <h3>📷 Traffic Light Camera</h3>
+
+          </div>
+
+          <div class="camera-feed"></div>
+
+          <div class="camera-info">
+
+            <div class="info-row">
+
+              <span class="info-label">Current Signal:</span>
+
+              <span class="info-value">🟢 GREEN</span>
+
+            </div>
+
+            <div class="info-row">
+
+              <span class="info-label">Status:</span>
+
+              <span class="info-value">Baseline</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ===== SCENARIOS STATUS (LIVE) ===== -->
+
+      <div class="scenarios-section">
+
+        <h2>🎯 Scenario Management</h2>
+
+        <p class="scenarios-desc">Enable multiple scenarios — the system will automatically choose the most appropriate one based on real‑time conditions.</p>
+
+        <!-- This grid is populated by updateLiveScenarioDisplay() in the script -->
+
+        <div class="scenarios-grid"></div>
+
+      </div>
+
+    </div>
+
+    <!-- ===== ANALYTICS PAGE ===== -->
+
+    <div id="analyticsPage" class="content-page">
+
+      <h2 class="page-title">📈 Analytics Dashboard</h2>
+
+      <div class="analytics-stats-grid">
+
+        <div class="stat-card">
+
+          <div class="stat-label">Avg Pedestrians</div>
+
+          <div class="stat-value" id="statAvgPed">0</div>
+
+        </div>
+
+        <div class="stat-card">
+
+          <div class="stat-label">Avg Vehicles</div>
+
+          <div class="stat-value" id="statAvgVeh">0</div>
+
+        </div>
+
+        <div class="stat-card">
+
+          <div class="stat-label">Peak Pedestrians</div>
+
+          <div class="stat-value" id="statPeakPed">0</div>
+
+        </div>
+
+        <div class="stat-card">
+
+          <div class="stat-label">Peak Vehicles</div>
+
+          <div class="stat-value" id="statPeakVeh">0</div>
+
+        </div>
+
+      </div>
+
+      <div class="analytics-controls">
+
+        <button class="chart-btn active" onclick="setAnalyticsTimeRange('hour')">Last Hour</button>
+
+        <button class="chart-btn" onclick="setAnalyticsTimeRange('6hours')">6 Hours</button>
+
+        <button class="chart-btn" onclick="setAnalyticsTimeRange('24hours')">24 Hours</button>
+
+        <button class="chart-btn" onclick="setChartType('line')">Line</button>
+
+        <button class="chart-btn" onclick="setChartType('bar')">Bar</button>
+
+        <button class="chart-btn" onclick="exportAnalyticsCSV()">Export CSV</button>
+
+      </div>
+
+      <div class="analytics-chart-card">
+
+        <h3>Traffic Density (Last 10 minutes)</h3>
+
+        <canvas id="densityChart"></canvas>
+
+      </div>
+
+    </div>
+
+    <!-- ===== SCENARIOS PAGE ===== -->
+
+    <div id="scenariosPage" class="content-page">
+
+      <h2 class="page-title">🎯 Detailed Scenario Management</h2>
+
+      <div class="scenarios-description-card">
+
+        <h2>📋 About This Page</h2>
+
+        <p>The Scenario Management system allows you to control traffic light behaviour based on real‑time conditions detected by AI cameras. You can activate multiple scenarios simultaneously to optimize traffic flow across the intersection at Adamson University San Marcelino St.</p>
+
+        <p><strong>How It Works:</strong></p>
+
+        <ul>
+
+          <li>Each scenario represents a specific traffic condition</li>
+
+          <li>Toggle scenarios ON/OFF to enable or disable them</li>
+
+          <li>Multiple scenarios can be active at the same time</li>
+
+          <li>The system prioritizes based on active scenarios and real‑time counts</li>
+
+          <li>All changes are sent to the LED boards in real time</li>
+
+        </ul>
+
+      </div>
+
+      <!-- The scenario cards are rendered into this grid by renderScenarioCards() in the script -->
+
+      <div id="scenarioCardsGrid" class="scenarios-detailed-grid"></div>
+
+    </div>
+
+    <!-- ===== ARCHIVE PAGE ===== -->
+
+    <div id="archivePage" class="content-page">
+
+      <h2 class="page-title">📋 System Logs &amp; Archive</h2>
+
+      <div style="margin-bottom: 1rem; display: flex; gap: 1rem;">
+
+        <button class="chart-btn" onclick="loadArchive(200)">Refresh</button>
+
+        <button class="chart-btn" onclick="deleteSelected()">Clear Selected</button>
+
+        <button class="chart-btn" onclick="clearAll()">Clear All</button>
+
+      </div>
+
+      <div class="table-scroll">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th><input type="checkbox" onchange="toggleSelectAll(this)"></th>
+
+              <th>Time</th>
+
+              <th>Event</th>
+
+              <th>Status (Boards)</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="archiveLogBody">
+
+            <tr>
+
+              <td colspan="4" style="text-align: center; color: var(--text-secondary);">Loading logs...</td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+    <!-- ===== HELP PAGE ===== -->
+
+    <div id="helpPage" class="content-page">
+
+      <div class="page-header">
+
+        <h2 class="page-title">📖 Help &amp; Documentation</h2>
+
+      </div>
+
+      <div class="help-wrapper">
+
+        <div class="help-sidebar">
+
+          <ul>
+
+            <li><a class="help-link active" onclick="showHelpSection('getting-started')">🚀 Getting Started</a></li>
+
+            <li><a class="help-link" onclick="showHelpSection('features')">✨ Features</a></li>
+
+            <li><a class="help-link" onclick="showHelpSection('cameras')">📷 Cameras</a></li>
+
+            <li><a class="help-link" onclick="showHelpSection('scenarios')">🎯 Scenarios</a></li>
+
+            <li><a class="help-link" onclick="showHelpSection('analytics')">📊 Analytics</a></li>
+
+            <li><a class="help-link" onclick="showHelpSection('support')">💬 Support</a></li>
+
+          </ul>
+
+        </div>
+
+        <div class="help-content" id="helpContent">
+
+          <h3>🚀 Getting Started</h3>
+
+          <p>Welcome to the LED Board System! This application manages traffic lights using AI detection.</p>
+
+          <p><strong>Quick Start:</strong></p>
+
+          <ul>
+
+            <li>Login with your admin credentials</li>
+
+            <li>View 3 camera feeds on the Live page</li>
+
+            <li>Enable or disable scenarios as needed</li>
+
+            <li>Monitor real‑time data in Analytics</li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ===== ABOUT PAGE ===== -->
+
+    <div id="aboutPage" class="content-page">
+
+      <h2 class="page-title">ℹ️ About LED Board System</h2>
+
+      <div class="about-cards-grid">
+
+        <div class="about-card">
+
+          <h3>🏢 System Overview</h3>
+
+          <p><strong>Project:</strong> LED Board Optimization<br>
+
+          <strong>Version:</strong> Production<br>
+
+          <strong>Institution:</strong> Adamson University</p>
+
+        </div>
+
+        <div class="about-card">
+
+          <h3>📖 Description</h3>
+
+          <p>AI‑powered traffic management system with real‑time pedestrian and vehicle detection, marshal integration and LED board optimization.</p>
+
+        </div>
+
+        <div class="about-card">
+
+          <h3>⚙️ Technical Specs</h3>
+
+          <p><strong>• 3 Camera Zones</strong><br>
+
+          <strong>• 5 Scenarios</strong><br>
+
+          <strong>• Multiple Activation</strong><br>
+
+          <strong>• Real‑Time AI</strong></p>
+
+        </div>
+
+        <div class="about-card">
+
+          <h3>✨ Capabilities</h3>
+
+          <p><strong>• Pedestrian Tracking</strong><br>
+
+          <strong>• Vehicle Detection</strong><br>
+
+          <strong>• Signal Recognition</strong><br>
+
+          <strong>• Emergency Vehicle Detection</strong></p>
+
+          <strong>• Marshal Integration</strong></p>
+
+        </div>
+
+        <div class="about-card">
+
+          <h3>👥 Team</h3>
+
+          <p>Abanto, Lim, Tan, Zantua<br>With Faculty Advisors</p>
+
+        </div>
+
+        <div class="about-card">
+
+          <h3>🚀 Status</h3>
+
+          <p><strong>Status:</strong> Operational<br>
+
+          <strong>Uptime:</strong> 99.9%</p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+</div>
+
+
+
+<script>
+
+
+
+
+
+
+
+  document.addEventListener('DOMContentLoaded', function() {
+
+    if (localStorage.getItem('theme') === 'dark') {
+
+      document.body.classList.add('dark-mode');
+
+    }
+
+  });
+
+</script>
+
+</body>
+
+</html>
+
